@@ -10,36 +10,110 @@ You may want your application source code pulled in to your buildpack processor 
 
 Create a directory for our app:
 
-```bash
-$ mkdir -p myapp/bin
-$ cd myapp
+```
+$ mkdir git-app
+$ cd git-app
 ```
 
-Here is an example app that will run on 64bit linux machine, like [this one](https://github.com/jbayer/hello-world-app):
+Reference an app source code on Github. You'll need a file named .gitbuildpack (can be empty) and a .buildpacks file that uses the git-buildpack and the buildpack that your app should use after the git repo has been cloned.
 
-```bash
-$ echo -e "#\!/usr/bin/env bash\n while true; do    echo 'hello';    sleep 5; done" > ./bin/program
-$ echo -e "web: bin/program" > Procfile
-$ chmod +x ./bin/program
-$ ./bin/program
-hello world
+```
+$ echo -e "https://github.com/jbayer/git-buildpack.git\nhttps://github.com/ryandotsmith/null-buildpack.git" > .buildpacks
+$ touch .gitbuildpack
+$ ls -al
+total 8
+drwxr-xr-x   4 jamesbayer  wheel  136 Jan 26 08:10 .
+drwxrwxrwt  20 root        wheel  680 Jan 26 08:01 ..
+-rw-r--r--@  1 jamesbayer  wheel   94 Jan 26 07:50 .buildpacks
+-rw-r--r--   1 jamesbayer  wheel    0 Jan 26 08:10 .gitbuildpack
 ```
 
-Reference an app source code on Github:
+Now push the app, remembering to set the GIT_URL variable to the git repository you want to clone from. In this case we use --no-route because this is a simple worker app printing hello ever few seconds and doesn't bind to a port.
 
-```bash
-$ cd /tmp
-$ git clone https://github.com/jbayer/hello-world-app.git
-$ git push heroku master
-$ heroku run program
-Running `program` attached to terminal... up, run.8663
-hello world
+```
+$ gcf push hello --no-route -m 64M -b https://github.com/ddollar/heroku-buildpack-multi.git --no-start
+$ gcf set-env hello GIT_URL https://github.com/jbayer/hello-world-app.git
+$ gcf start hello
+Starting app hello in org jbayer-normal-org / space development as jbayer+normal@gopivotal.com...
+-----> Downloaded app package (4.0K)
+OK
+Initialized empty Git repository in /tmp/buildpacks/heroku-buildpack-multi/.git/
+=====> Downloading Buildpack: https://github.com/jbayer/git-buildpack.git
+=====> Detected Framework: Git buildpack detected
+=====> starting git buildpack compile
+=====> dir is /tmp/buildpackTMEPH
+=====> url is https://github.com/jbayer/hello-world-app.git
+=====> branch is is
+=====> Downloading git repo: https://github.com/jbayer/hello-world-app.git
+=====> final contents of build dir
+total 36
+drwxr--r-- 3 vcap vcap  4096 Jan 26 16:40 .
+drwxr-xr-x 5 vcap vcap  4096 Jan 26 16:40 ..
+-rwxr--r-- 1 vcap vcap    94 Jan 26 16:39 .buildpacks
+-rwxr--r-- 1 vcap vcap     0 Jan 26 16:39 .gitbuildpack
+-rw-r--r-- 1 vcap vcap 11325 Jan 26 16:40 LICENSE
+-rw-r--r-- 1 vcap vcap    17 Jan 26 16:40 Procfile
+-rw-r--r-- 1 vcap vcap    76 Jan 26 16:40 README.md
+drwxr-xr-x 2 vcap vcap  4096 Jan 26 16:40 bin
+=====> Downloading Buildpack: https://github.com/ryandotsmith/null-buildpack.git
+=====> Detected Framework: Null
+-----> Nothing to do.
+       Using release configuration from last framework Null:
+       --- {}
+-----> Uploading droplet (8.0K)
+
+1 of 1 instances running
+
+App started
+
+Showing health and status for app hello in org jbayer-normal-org / space development as jbayer+normal@gopivotal.com...
+OK
+
+requested state: started
+instances: 1/1
+usage: 64M x 1 instances
+urls:
+
+     state     since                    cpu    memory        disk
+#0   running   2014-01-26 08:40:48 AM   0.0%   948K of 64M   84K of 1G
 ```
 
-## Motivation
+Now you can check the logs to see if the app is working as expected.
 
-I wanted to run various executables (e.g. [log-shuttle](https://github.com/ryandotsmith/log-shuttle)) on Heroku without compiling them on Heroku. Thus, I compile programs on my linux 64 machine, or fetch the binary from the project, commit them to a repo and then run them on Heroku with the Ø buildpack.
+```
+$ gcf logs hello
+Connected, tailing logs for app hello in org jbayer-normal-org / space development as jbayer+normal@gopivotal.com...
+
+2014-01-26T08:39:30.69-0800 [API]     OUT Created app with guid 184ab665-1d05-4994-a85d-2e980e891ec3
+2014-01-26T08:40:25.01-0800 [API]     OUT Updated app with guid 184ab665-1d05-4994-a85d-2e980e891ec3 ({"environment_json"=>"PRIVATE DATA HIDDEN"})
+2014-01-26T08:40:42.37-0800 [STG]     OUT total 36
+2014-01-26T08:40:42.38-0800 [STG]     OUT drwxr--r-- 3 vcap vcap  4096 Jan 26 16:40 .
+2014-01-26T08:40:42.38-0800 [STG]     OUT drwxr-xr-x 5 vcap vcap  4096 Jan 26 16:40 ..
+2014-01-26T08:40:42.38-0800 [STG]     OUT -rwxr--r-- 1 vcap vcap    94 Jan 26 16:39 .buildpacks
+2014-01-26T08:40:42.38-0800 [STG]     OUT -rwxr--r-- 1 vcap vcap     0 Jan 26 16:39 .gitbuildpack
+2014-01-26T08:40:42.38-0800 [STG]     OUT -rw-r--r-- 1 vcap vcap 11325 Jan 26 16:40 LICENSE
+2014-01-26T08:40:42.38-0800 [STG]     OUT -rw-r--r-- 1 vcap vcap    17 Jan 26 16:40 Procfile
+2014-01-26T08:40:42.38-0800 [STG]     OUT -rw-r--r-- 1 vcap vcap    76 Jan 26 16:40 README.md
+2014-01-26T08:40:42.38-0800 [STG]     OUT drwxr-xr-x 2 vcap vcap  4096 Jan 26 16:40 bin
+2014-01-26T08:40:42.38-0800 [STG]     OUT =====> Downloading Buildpack: https://github.com/ryandotsmith/null-buildpack.git
+2014-01-26T08:40:42.38-0800 [STG]     OUT =====> Detected Framework: Null
+2014-01-26T08:40:42.38-0800 [STG]     OUT -----> Nothing to do.
+2014-01-26T08:40:42.38-0800 [STG]     OUT        Using release configuration from last framework Null:
+2014-01-26T08:40:42.38-0800 [STG]     OUT        --- {}
+2014-01-26T08:40:42.76-0800 [STG]     OUT -----> Uploading droplet (8.0K)
+2014-01-26T08:40:47.55-0800 [DEA]     OUT Registering app instance (index 0) with guid 184ab665-1d05-4994-a85d-2e980e891ec3
+2014-01-26T08:40:48.77-0800 [App/0]   OUT hello
+2014-01-26T08:40:48.77-0800 [App/0]   ERR
+2014-01-26T08:40:53.68-0800 [App/0]   OUT hello
+2014-01-26T08:40:58.69-0800 [App/0]   OUT hello
+2014-01-26T08:41:03.69-0800 [App/0]   OUT hello
+2014-01-26T08:41:08.69-0800 [App/0]   OUT hello
+2014-01-26T08:41:13.70-0800 [App/0]   OUT hello
+2014-01-26T08:41:18.70-0800 [App/0]   OUT hello
+
+```
 
 ## Issues
 
-You will need to make sure that a 64bit linux machine can execute the binary.
+Want to support branches and authentication
+Want to not require GIT_URL env variable if the .gitbuildpack file has repo information
