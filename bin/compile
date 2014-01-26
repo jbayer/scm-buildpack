@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# bin/compile <build-dir> <cache-dir>
+
+set -e
+
+function indent() {
+  c='s/^/       /'
+  case $(uname) in
+    Darwin) sed -l "$c";;
+    *)      sed -u "$c";;
+  esac
+}
+
+unset GIT_DIR
+
+while : ; do
+  dir=$(mktemp -t buildpackXXXXX)
+  rm -rf $dir
+
+  url=${BUILDPACK_URL}
+  branch=${BUILDPACK_BRANCH}
+
+  if [ "$branch" == "$url" ]; then
+    branch=""
+  fi
+
+  if [ "$url" != "" ]; then
+    echo "=====> Downloading Buildpack: $url"
+
+    if [[ "$url" =~ \.tgz$ ]]; then
+      mkdir -p "$dir"
+      curl -s "$url" | tar xvz -C "$dir" >/dev/null 2>&1
+    else
+      git clone $url $dir >/dev/null 2>&1
+    fi
+    cd $dir
+
+    if [ "$branch" != "" ]; then
+      git checkout $branch >/dev/null 2>&1
+    fi
+
+	echo 'copying files to build directory'
+    cp -R $dir $1
+
+  fi
+done
