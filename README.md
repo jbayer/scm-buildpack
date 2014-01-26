@@ -6,7 +6,13 @@ a simple buildpack that pulls application code in from a remote git server
 
 You may want your application source code pulled in to your buildpack processor from your git server of choice (such as Github) rather than be required to push your application code in or use a git location that is assigned to you (such as with Heroku). You can use the git buildpack in conjunction with the [heroku-buildpack-multi](https://github.com/ddollar/heroku-buildpack-multi#heroku-buildpack-multi) and other buildpacks of your choosing to build your application.
 
-## Usage
+## Usage:
+
+* have an app with a .buildpacks file in the root that has 1 line for each buildpack. the 1st line is likely the git-buildpack and subsequent lines should be other buildpacks that ready your app code to run
+* have a .gitbuildpack file in the root of the app so the git-buildpack bin/detect script returns 0
+* set a GIT_URL environment variable with the URL to your git repository
+
+## Example
 
 Create a directory for our app:
 
