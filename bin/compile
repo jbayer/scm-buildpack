@@ -27,12 +27,13 @@ while : ; do
   fi
 
   if [ "$url" != "" ]; then
-    echo "=====> Downloading git repo: $url"
 
     if [[ "$url" =~ \.tgz$ ]]; then
+      echo "=====> Downloading tgz archive: $url"
       mkdir -p "$dir"
       curl -s "$url" | tar xvz -C "$dir" >/dev/null 2>&1
     else
+      echo "=====> Downloading git repo: $url"
       git clone $url $dir >/dev/null 2>&1
     fi
     cd $dir
