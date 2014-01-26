@@ -41,7 +41,7 @@ while : ; do
       git checkout $branch >/dev/null 2>&1
     fi
 
-    cp -R $dir $1
+    cp -R $dir/* $1
     echo "=====> final contents of build dir"
     ls -al $1
   fi
