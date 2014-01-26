@@ -14,10 +14,13 @@ function indent() {
 while : ; do
   echo "=====> starting git buildpack compile"
   dir=$(mktemp -t buildpackXXXXX)
+  echo "=====> dir is ${dir}"
   rm -rf $dir
 
   url=${BUILDPACK_URL}
+  echo "=====> url is ${url}"
   branch=${BUILDPACK_BRANCH}
+  echo "=====> branch is is ${branch}"
 
   if [ "$branch" == "$url" ]; then
     branch=""
