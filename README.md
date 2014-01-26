@@ -115,5 +115,6 @@ Connected, tailing logs for app hello in org jbayer-normal-org / space developme
 
 ## Issues
 
-Want to support branches and authentication
-Want to not require GIT_URL env variable if the .gitbuildpack file has repo information
+* support branches and authentication
+* do not require GIT_URL env variable if the .gitbuildpack file has repo information
+* more info logs
