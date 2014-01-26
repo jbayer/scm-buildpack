@@ -17,9 +17,9 @@ while : ; do
   echo "=====> dir is ${dir}"
   rm -rf $dir
 
-  url=${BUILDPACK_URL}
+  url=${GIT_URL}
   echo "=====> url is ${url}"
-  branch=${BUILDPACK_BRANCH}
+  branch=${GIT_BRANCH}
   echo "=====> branch is is ${branch}"
 
   if [ "$branch" == "$url" ]; then
@@ -27,7 +27,7 @@ while : ; do
   fi
 
   if [ "$url" != "" ]; then
-    echo "=====> Downloading Buildpack: $url"
+    echo "=====> Downloading git repo: $url"
 
     if [[ "$url" =~ \.tgz$ ]]; then
       mkdir -p "$dir"
