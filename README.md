@@ -8,6 +8,12 @@ You may want your application source code pulled in to your buildpack processor 
 
 ## Usage
 
+* have an app with a .buildpacks file in the root that has 1 line for each buildpack. the 1st line is likely the git-buildpack and subsequent lines should be other buildpacks that ready your app code to run
+* have a .gitbuildpack file in the root of the app so the git-buildpack bin/detect script returns 0
+* set a GIT_URL environment variable with the URL to your git repository
+
+## Example
+
 Create a directory for our app:
 
 ```
@@ -115,6 +121,7 @@ Connected, tailing logs for app hello in org jbayer-normal-org / space developme
 
 ## Issues
 
+* save the repo in the app's buildpack cache dir and just fetch changes
 * support branches and authentication
 * do not require GIT_URL env variable if the .gitbuildpack file has repo information
 * more info logs
