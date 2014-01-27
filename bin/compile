@@ -16,6 +16,7 @@ while : ; do
   dir=$(mktemp -t buildpackXXXXX)
   echo "=====> dir is ${dir}"
   rm -rf $dir
+  mkdir -p "$dir"
 
   url=${GIT_URL}
   echo "=====> url is ${url}"
@@ -30,18 +31,18 @@ while : ; do
 
     if [[ "$url" =~ \.tgz$ ]]; then
       echo "=====> Downloading tgz archive: $url"
-      mkdir -p "$dir"
       curl -s "$url" | tar xvz -C "$dir" >/dev/null 2>&1
     else
       echo "=====> Downloading git repo: $url"
       git clone $url $dir >/dev/null 2>&1
     fi
-    cd $dir
 
     if [ "$branch" != "" ]; then
       git checkout $branch >/dev/null 2>&1
     fi
 
+    echo "=====> copying contents of $dir to $1"
+    cd $dir
     cp -R $dir/* $1
     echo "=====> final contents of build dir"
     ls -al $1
