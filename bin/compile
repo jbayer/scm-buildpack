@@ -33,10 +33,9 @@ while : ; do
       echo "=====> Downloading tgz archive: $url"
       curl -s "$url" | tar xvz -C "$dir" >/dev/null 2>&1
     elif [[ "$url" =~ \.(zip)$ ]]; then
-	  tempdir=$(mktemp -t tempXXXXX)
-      wget "$url" -O "$tempdir"/tempfile >/dev/null 2>&1
-      unzip "$tempdir"/tempfile -d "$dir" >/dev/null 2>&1
-      rm "$tempdir"/tempfile
+		tempfile=$(mktemp -t tempXXXXX)
+		wget "$url" -O "$tempfile"
+		unzip "$tempfile" -d "$dir"
     else
       echo "=====> Downloading git repo: $url"
       git clone $url $dir >/dev/null 2>&1
