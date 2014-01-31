@@ -11,49 +11,45 @@ function indent() {
   esac
 }
 
-while : ; do
-  echo "=====> starting git buildpack compile"
-  dir=$(mktemp -t buildpackXXXXX)
-  rm -rf $dir
-  mkdir -p "$dir"
+echo "=====> starting git buildpack compile"
+dir=$(mktemp -t buildpackXXXXX)
+rm -rf $dir
+mkdir -p "$dir"
 
-  url=${GIT_URL}
-  echo "=====> url is ${url}"
-  branch=${GIT_BRANCH}
+url=${GIT_URL}
+echo "=====> url is ${url}"
+branch=${GIT_BRANCH}
+if [ "$branch" != "" ]; then
+  echo "=====> branch is is ${branch}"
+fi
+
+if [ "$branch" == "$url" ]; then
+  branch=""
+fi
+
+if [ "$url" != "" ]; then
+  if [[ "$url" =~ \.(tgz)$ ]]; then
+    echo "=====> Downloading tgz archive: $url"
+    curl -k -s "$url" | tar xvz -C "$dir"
+  elif [[ "$url" =~ \.(zip)$ ]]; then
+    echo "=====> Downloading zip archive: $url"
+	tempfile=$(mktemp -t tempXXXXX)
+	curl -k -o "$tempfile" "$url"
+	unzip "$tempfile" -d "$dir"
+	rm tempfile
+  else
+    echo "=====> Downloading git repo: $url"
+    git clone $url $dir
+  fi
+  echo "=====> Download finished"
+
   if [ "$branch" != "" ]; then
-    echo "=====> branch is is ${branch}"
+    git checkout $branch
   fi
 
-  if [ "$branch" == "$url" ]; then
-    branch=""
-  fi
-
-  if [ "$url" != "" ]; then
-
-    if [[ "$url" =~ \.(tgz)$ ]]; then
-      echo "=====> Downloading tgz archive: $url"
-      curl -k -s "$url" | tar xvz -C "$dir" >/dev/null 2>&1
-    elif [[ "$url" =~ \.(zip)$ ]]; then
-      echo "=====> Downloading zip archive: $url"
-	  tempfile=$(mktemp -t tempXXXXX) >/dev/null 2>&1
-	  curl -k -o "$tempfile" "$url" >/dev/null 2>&1
-	  unzip "$tempfile" -d "$dir" >/dev/null 2>&1
-	  rm tempfile >/dev/null 2>&1
-    else
-      echo "=====> Downloading git repo: $url"
-      git clone $url $dir >/dev/null 2>&1
-    fi
-    echo "=====> Download finished"
-
-    if [ "$branch" != "" ]; then
-      git checkout $branch
-    fi
-
-    echo "=====> copying contents of $dir to $1"
-    cd $dir
-    cp -R $dir/* $1
-    echo "=====> final contents of build dir"
-    ls -al $1
-  fi
-  break
-done
+  echo "=====> copying contents of $dir to $1"
+  cd $dir
+  cp -R $dir/* $1
+  echo "=====> final contents of build dir"
+  ls -al $1
+fi
