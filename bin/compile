@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 # bin/compile <build-dir> <cache-dir>
 
-set -e
-
 function indent() {
   c='s/^/       /'
   case $(uname) in
@@ -36,7 +34,7 @@ if [ "$url" != "" ]; then
 	tempfile=$(mktemp -t tempXXXXX)
 	curl -k -o "$tempfile" "$url"
 	unzip "$tempfile" -d "$dir"
-	rm tempfile
+	rm "$tempfile"
   else
     echo "=====> Downloading git repo: $url"
     git clone $url $dir
