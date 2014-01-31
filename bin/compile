@@ -34,7 +34,7 @@ while : ; do
       curl -s "$url" | tar xvz -C "$dir" >/dev/null 2>&1
     elif [[ "$url" =~ \.(zip)$ ]]; then
 		tempfile=$(mktemp -t tempXXXXX)
-		wget "$url" -O "$tempfile"
+		curl -o "$tempfile" "$url"
 		unzip "$tempfile" -d "$dir"
     else
       echo "=====> Downloading git repo: $url"
