@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # bin/compile <build-dir> <cache-dir>
 
-set -e -x
+set -e
 
 function indent() {
   c='s/^/       /'
@@ -14,14 +14,15 @@ function indent() {
 while : ; do
   echo "=====> starting git buildpack compile"
   dir=$(mktemp -t buildpackXXXXX)
-  echo "=====> dir is ${dir}"
   rm -rf $dir
   mkdir -p "$dir"
 
   url=${GIT_URL}
   echo "=====> url is ${url}"
   branch=${GIT_BRANCH}
-  echo "=====> branch is is ${branch}"
+  if [ "$branch" != "" ]; then
+    echo "=====> branch is is ${branch}"
+  fi
 
   if [ "$branch" == "$url" ]; then
     branch=""
@@ -31,18 +32,21 @@ while : ; do
 
     if [[ "$url" =~ \.(tgz)$ ]]; then
       echo "=====> Downloading tgz archive: $url"
-      curl -s "$url" | tar xvz -C "$dir" >/dev/null 2>&1
+      curl -k -s "$url" | tar xvz -C "$dir" >/dev/null 2>&1
     elif [[ "$url" =~ \.(zip)$ ]]; then
-		tempfile=$(mktemp -t tempXXXXX)
-		curl -o "$tempfile" "$url"
-		unzip "$tempfile" -d "$dir"
+      echo "=====> Downloading zip archive: $url"
+	  tempfile=$(mktemp -t tempXXXXX) >/dev/null 2>&1
+	  curl -k -o "$tempfile" "$url" >/dev/null 2>&1
+	  unzip "$tempfile" -d "$dir" >/dev/null 2>&1
+	  rm tempfile >/dev/null 2>&1
     else
       echo "=====> Downloading git repo: $url"
       git clone $url $dir >/dev/null 2>&1
     fi
+    echo "=====> Download finished"
 
     if [ "$branch" != "" ]; then
-      git checkout $branch >/dev/null 2>&1
+      git checkout $branch
     fi
 
     echo "=====> copying contents of $dir to $1"
