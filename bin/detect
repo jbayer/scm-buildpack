@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # bin/detect <build-dir>
 
-if [ -f $1/.gitbuildpack ]; then
-  echo "Git"
+if [ -f $1/.scmbuildpack ]; then
+  echo "SCM"
   exit 0
 else
-  echo "not a git buildpack: .gitbuildpack file not found"
+  echo "not an SCM buildpack: .scmbuildpack file not found"
   exit 1
 fi
