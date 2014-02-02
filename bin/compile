@@ -10,40 +10,40 @@ function indent() {
 }
 
 echo "=====> starting SCM buildpack compile"
-dir=$(mktemp -t buildpackXXXXX)
-rm -rf $dir
-mkdir -p "$dir"
+DIR=$(mktemp -t buildpackXXXXX)
+rm -rf $DIR
+mkdir -p "$DIR"
 
 SCM_URL=${SCM_URL}
 echo "=====> SCM_URL is $SCM_URL"
-branch=${GIT_BRANCH}
-if [ "$branch" != "" ]; then
-  echo "=====> branch is is ${branch}"
+SCM_BRANCH=${GIT_BRANCH}
+if [ "$SCM_BRANCH" != "" ]; then
+  echo "=====> SCM_BRANCH is $SCM_BRANCH"
 fi
 
 if [ "$SCM_URL" != "" ]; then
   if [[ "$SCM_URL" =~ \.(tgz)$ ]]; then
     echo "=====> Downloading tgz archive: $SCM_URL"
-    curl -k -s "$SCM_URL" | tar xvz -C "$SCM_URL"
+    curl -k -s "$SCM_URL" | tar xvz -C "$DIR"
   elif [[ "$SCM_URL" =~ \.(zip)$ ]]; then
     echo "=====> Downloading zip archive: $SCM_URL"
 	tempfile=$(mktemp -t tempXXXXX)
 	curl -k -o "$tempfile" "$SCM_URL"
-	unzip "$tempfile" -d "$dir"
+	unzip "$tempfile" -d "$DIR"
 	rm "$tempfile"
   else
     echo "=====> Downloading git repo: $SCM_URL"
-    git clone $SCM_URL $dir
+    git clone $SCM_URL $DIR
   fi
   echo "=====> Download finished"
 
-  if [ "$branch" != "" ]; then
-    git checkout $branch
+  if [ "$SCM_BRANCH" != "" ]; then
+    git checkout $SCM_BRANCH
   fi
 
-  echo "=====> copying contents of $dir to $1"
-  cd $dir
-  cp -R $dir/* $1
+  echo "=====> copying contents of $DIR to $1"
+  cd $DIR
+  cp -R $DIR/* $1
   echo "=====> final contents of build dir"
   ls -al $1
 fi
