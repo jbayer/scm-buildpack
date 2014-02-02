@@ -34,6 +34,8 @@ DIR=$(mktemp -t buildpackXXXXX)
 rm -rf $DIR
 mkdir -p "$DIR"
 
+APP_DIR=$CACHE_DIR/app
+
 # if [[ "$SCM_URL" =~ \.(tgz|tar\.gz)$ ]]; then
 if [[ "$SCM_URL" =~ \.(tgz)$ ]]; then
   echo "=====> Downloading tgz archive: $SCM_URL"
@@ -45,16 +47,19 @@ elif [[ "$SCM_URL" =~ \.(zip)$ ]]; then
   unzip "$TEMPFILE" -d "$DIR" | indent
   rm "$TEMPFILE"
 elif [[ "$SCM_URL" =~ \.(git)$ ]]; then
+  git --version | indent
   ls -al $CACHE_DIR/*
+  ls -al $CACHE_DIR/bundle/*
+  ls -al $CACHE_DIR/heroku/*
   sleep 2
-  if [[ -d $CACHE_DIR/.git ]]; then
+  if [[ -d $APP_DIR/.git ]]; then
     echo "=====> Fetching existing repo" | indent
-    cd $CACHE_DIR/.git
+    cd $APP_DIR/.git
     git fetch origin | indent
     git checkout origin/$SCM_BRANCH | indent
   else
     echo "=====> Cloning repo for the first time"
-    git clone $SCM_URL $CACHE_DIR | indent
+    git clone $SCM_URL $APP_DIR | indent
   fi
 else
   echo "! \$SCM_URL $SCM_URL was not detected as a tgz, zip or git" | indent
