@@ -40,12 +40,14 @@ APP_DIR=$CACHE_DIR/app
 if [[ "$SCM_URL" =~ \.(tgz)$ ]]; then
   echo "=====> Downloading tgz archive: $SCM_URL"
   curl -k -s "$SCM_URL" | tar xvz -C "$DIR" | indent
+  cp -R $DIR/* $BUILD_DIR/
 elif [[ "$SCM_URL" =~ \.(zip)$ ]]; then
   echo "=====> Downloading zip archive: $SCM_URL"
   TEMPFILE=$(mktemp -t tempXXXXX)
   curl -k -o "$TEMPFILE" "$SCM_URL" | indent
   unzip "$TEMPFILE" -d "$DIR" | indent
   rm "$TEMPFILE"
+  cp -R $DIR/* $BUILD_DIR/
 elif [[ "$SCM_URL" =~ \.(git)$ ]]; then
   git --version | indent
   ls -al $CACHE_DIR/*
@@ -61,6 +63,7 @@ elif [[ "$SCM_URL" =~ \.(git)$ ]]; then
     echo "=====> Cloning repo for the first time"
     git clone $SCM_URL $APP_DIR | indent
   fi
+  cp -R $APP_DIR/* $BUILD_DIR/
 else
   echo "! \$SCM_URL $SCM_URL was not detected as a tgz, zip or git" | indent
   exit 1
@@ -68,8 +71,4 @@ fi
 
 echo "=====> Download finished"
 
-echo "=====> copying contents of $DIR to $1"
-cd $DIR
-cp -R $DIR/* $1
-echo "=====> final contents of build dir"
-ls -al $1
+ls -al $BUILD_DIR
