@@ -41,10 +41,10 @@ elif [[ "$SCM_URL" =~ \.(zip)$ ]]; then
   echo "=====> Downloading zip archive: $SCM_URL"
   TEMPFILE=$(mktemp -t tempXXXXX)
   curl -k -o $TEMPFILE $SCM_URL | indent
-  unzip $TEMPFILE -d "$TEMPDIR | indent
+  unzip $TEMPFILE -d $TEMPDIR | indent
   rm $TEMPFILE
   cp -R $TEMPDIR/* $BUILD_DIR/
-elif [[ $SCM_URL =~ \.(git)$ ]]; then
+elif [[ "$SCM_URL" =~ \.(git)$ ]]; then
   SCM_BRANCH=${SCM_BRANCH:-master}
   echo "=====> SCM_BRANCH is $SCM_BRANCH"
   if [[ -d $SCM_DIR/.git ]]; then
@@ -66,6 +66,8 @@ else
   exit 1
 fi
 
-echo "=====> Download finished"
+echo "=====> Final cache dir listing"
+ls -al $CACHE_DIR | indent
 
-ls -al $BUILD_DIR
+echo "=====> Final build dir listing"
+ls -al $BUILD_DIR | indent
