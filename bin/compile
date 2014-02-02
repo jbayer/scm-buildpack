@@ -10,16 +10,26 @@ function indent() {
 }
 
 echo "=====> starting SCM buildpack compile"
-DIR=$(mktemp -t buildpackXXXXX)
-rm -rf $DIR
-mkdir -p "$DIR"
+
+if [ "$SCM_URL" == "" ]; then
+  echo "=====> SCM_URL is not set, exiting"
+  sleep 2;
+  exit 1;
+fi
 
 SCM_URL=${SCM_URL}
 echo "=====> SCM_URL is $SCM_URL"
-SCM_BRANCH=${GIT_BRANCH}
+
 if [ "$SCM_BRANCH" != "" ]; then
   echo "=====> SCM_BRANCH is $SCM_BRANCH"
+  SCM_BRANCH=${SCM_BRANCH}
 fi
+
+
+# temp location in case we need it for archive downloads
+DIR=$(mktemp -t buildpackXXXXX)
+rm -rf $DIR
+mkdir -p "$DIR"
 
 if [ "$SCM_URL" != "" ]; then
   if [[ "$SCM_URL" =~ \.(tgz)$ ]]; then
@@ -27,10 +37,10 @@ if [ "$SCM_URL" != "" ]; then
     curl -k -s "$SCM_URL" | tar xvz -C "$DIR"
   elif [[ "$SCM_URL" =~ \.(zip)$ ]]; then
     echo "=====> Downloading zip archive: $SCM_URL"
-	tempfile=$(mktemp -t tempXXXXX)
-	curl -k -o "$tempfile" "$SCM_URL"
-	unzip "$tempfile" -d "$DIR"
-	rm "$tempfile"
+	TEMPFILE=$(mktemp -t tempXXXXX)
+	curl -k -o "$TEMPFILE" "$SCM_URL"
+	unzip "$TEMPFILE" -d "$DIR"
+	rm "$TEMPFILE"
   else
     echo "=====> Downloading git repo: $SCM_URL"
     git clone $SCM_URL $DIR
