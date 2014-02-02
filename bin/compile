@@ -56,7 +56,7 @@ elif [[ "$SCM_URL" =~ \.(git)$ ]]; then
   sleep 2
   if [[ -d $APP_DIR/.git ]]; then
     echo "=====> Fetching existing repo" | indent
-    cd $APP_DIR/.git
+    cd $APP_DIR
     git fetch origin | indent
     git checkout origin/$SCM_BRANCH | indent
   else
