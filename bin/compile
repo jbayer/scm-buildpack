@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # bin/compile <build-dir> <cache-dir>
 
+BUILD_DIR=$1
+CACHE_DIR=$2
+
 function indent() {
   c='s/^/       /'
   case $(uname) in
@@ -20,11 +23,8 @@ fi
 SCM_URL=${SCM_URL}
 echo "=====> SCM_URL is $SCM_URL"
 
-if [ "$SCM_BRANCH" != "" ]; then
-  echo "=====> SCM_BRANCH is $SCM_BRANCH"
-  SCM_BRANCH=${SCM_BRANCH}
-fi
-
+SCM_BRANCH=${SCM_BRANCH:-master}
+echo "=====> SCM_BRANCH is $SCM_BRANCH"
 
 # temp location in case we need it for archive downloads
 DIR=$(mktemp -t buildpackXXXXX)
@@ -32,19 +32,29 @@ rm -rf $DIR
 mkdir -p "$DIR"
 
 if [ "$SCM_URL" != "" ]; then
+  # if [[ "$SCM_URL" =~ \.(tgz|tar\.gz)$ ]]; then
   if [[ "$SCM_URL" =~ \.(tgz)$ ]]; then
     echo "=====> Downloading tgz archive: $SCM_URL"
     curl -k -s "$SCM_URL" | tar xvz -C "$DIR"
   elif [[ "$SCM_URL" =~ \.(zip)$ ]]; then
     echo "=====> Downloading zip archive: $SCM_URL"
-	TEMPFILE=$(mktemp -t tempXXXXX)
-	curl -k -o "$TEMPFILE" "$SCM_URL"
-	unzip "$TEMPFILE" -d "$DIR"
-	rm "$TEMPFILE"
+    TEMPFILE=$(mktemp -t tempXXXXX)
+    curl -k -o "$TEMPFILE" "$SCM_URL"
+    unzip "$TEMPFILE" -d "$DIR"
+    rm "$TEMPFILE"
+  elif [[ "$SCM_URL" =~ \.(git)$ ]]; then
+    if [[ -d $CACHE_DIR/.git ]]; then
+      cd $CACHE_DIR/.git
+      git fetch origin
+      git checkout origin/$SCM_BRANCH
+    else
+      git clone $SCM_URL $CACHE_DIR
+    fi
   else
-    echo "=====> Downloading git repo: $SCM_URL"
-    git clone $SCM_URL $DIR
+    echo "\$SCM_URL $SCM_URL was not detected as a tgz, zip or git"
+    exit 1
   fi
+
   echo "=====> Download finished"
 
   if [ "$SCM_BRANCH" != "" ]; then
