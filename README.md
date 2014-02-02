@@ -1,16 +1,16 @@
-# Git Buildpack
+# SCM Buildpack
 
-a simple buildpack that pulls application code in from a remote git server or a remote archive with a .zip or .tgz extension and format.
+a simple buildpack that pulls application code in from a remote git server or remote archives with a .zip or .tgz and extracts the files. it is intended to be used in conjunction with [heroku-buildpack-multi](https://github.com/ddollar/heroku-buildpack-multi#heroku-buildpack-multi) and other user-specified buildpacks. 
 
 ## Motivation
 
-You may want your application source code pulled in to your buildpack compatible PaaS from your git server of choice (such as Github) or a remote archive rather than be required to push your application code in or use a git location that is assigned to you (such as with Heroku) or have to push your application source code into the PaaS. You can use the git buildpack in conjunction with the [heroku-buildpack-multi](https://github.com/ddollar/heroku-buildpack-multi#heroku-buildpack-multi) and other buildpacks of your choosing to build your application.
+You may want your application source code pulled in to your buildpack compatible PaaS from your git server of choice (such as Github) or a remote archive rather than be required to push your application code in or use a git location that is assigned to you (such as with Heroku) or have to push your application source code into the PaaS (Cloud Foundry).
 
 ## Usage
 
-* have an app with a .buildpacks file in the root that has 1 line for each buildpack. the 1st line is likely the git-buildpack and subsequent lines should be other buildpacks that ready your app code to run
+* use an app with a .buildpacks file in the root that has 1 line for each buildpack. the 1st line is likely the git-buildpack and subsequent lines should be other buildpacks that ready your app code to run
 * have a .gitbuildpack file in the root of the app so the git-buildpack bin/detect script returns 0
-* set a GIT_URL environment variable with the URL to your git repository or your http URL that ends in .tgz or .zip
+* set an SCM_URL environment variable with the URL to your git repository or your http URL that ends in .tgz or .zip
 
 ## Example
 
@@ -34,19 +34,19 @@ drwxrwxrwt  20 root        wheel  680 Jan 26 08:01 ..
 -rw-r--r--   1 jamesbayer  wheel    0 Jan 26 08:10 .gitbuildpack
 ```
 
-Now push the app, remembering to set the GIT_URL variable to the git repository you want to clone from. In this case we use --no-route because this is a simple worker app printing hello ever few seconds and doesn't bind to a port.
+Now push the app, remembering to set the SCM_URL variable to the git repository you want to clone from. In this case we use --no-route because this is a simple worker app printing hello ever few seconds and doesn't bind to a port.
 
 ```
 $ gcf push hello --no-route -m 64M -b https://github.com/ddollar/heroku-buildpack-multi.git --no-start
-$ gcf set-env hello GIT_URL https://github.com/jbayer/hello-world-app.git
+$ gcf set-env hello SCM_URL https://github.com/jbayer/hello-world-app.git
 $ gcf start hello
 Starting app hello in org jbayer-normal-org / space development as jbayer+normal@gopivotal.com...
 -----> Downloaded app package (4.0K)
 OK
 Initialized empty Git repository in /tmp/buildpacks/heroku-buildpack-multi/.git/
-=====> Downloading Buildpack: https://github.com/jbayer/git-buildpack.git
-=====> Detected Framework: Git buildpack detected
-=====> starting git buildpack compile
+=====> Downloading Buildpack: https://github.com/jbayer/scm-buildpack.git
+=====> Detected Framework: SCM buildpack detected
+=====> starting SCM buildpack compile
 =====> dir is /tmp/buildpackTMEPH
 =====> url is https://github.com/jbayer/hello-world-app.git
 =====> branch is is
@@ -119,9 +119,10 @@ Connected, tailing logs for app hello in org jbayer-normal-org / space developme
 
 ```
 
-## Issues
+## Issues and Roadmap
 
 * save the repo in the app's buildpack cache dir and just fetch changes
-* support branches and authentication
-* do not require GIT_URL env variable if the .gitbuildpack file has repo information
+* support authentication in a way that doesn't put credentials in log output 
+* do not require SCM_URL env variable if the .gitbuildpack file has information
+* support other remote transports like FTP/SCP
 * more info logs
