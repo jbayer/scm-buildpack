@@ -30,7 +30,7 @@ TEMPDIR=$(mktemp -t buildpackXXXXX)
 rm -rf $TEMPDIR
 mkdir -p $TEMPDIR
 
-SCM_DIR=$CACHE_DIR/app
+SCM_DIR=$CACHE_DIR/scm
 
 # if [[ "$SCM_URL" =~ \.(tgz|tar\.gz)$ ]]; then
 if [[ "$SCM_URL" =~ \.(tgz)$ ]]; then
