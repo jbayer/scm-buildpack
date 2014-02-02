@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # bin/compile <build-dir> <cache-dir>
 
-set -e # fail fast
+# set -e # fail fast
 set -o pipefail
 
 BUILD_DIR=$1
