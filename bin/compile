@@ -9,35 +9,31 @@ function indent() {
   esac
 }
 
-echo "=====> starting git buildpack compile"
+echo "=====> starting SCM buildpack compile"
 dir=$(mktemp -t buildpackXXXXX)
 rm -rf $dir
 mkdir -p "$dir"
 
-url=${GIT_URL}
-echo "=====> url is ${url}"
+SCM_URL=${SCM_URL}
+echo "=====> SCM_URL is $SCM_URL"
 branch=${GIT_BRANCH}
 if [ "$branch" != "" ]; then
   echo "=====> branch is is ${branch}"
 fi
 
-if [ "$branch" == "$url" ]; then
-  branch=""
-fi
-
-if [ "$url" != "" ]; then
-  if [[ "$url" =~ \.(tgz)$ ]]; then
-    echo "=====> Downloading tgz archive: $url"
-    curl -k -s "$url" | tar xvz -C "$dir"
-  elif [[ "$url" =~ \.(zip)$ ]]; then
-    echo "=====> Downloading zip archive: $url"
+if [ "$SCM_URL" != "" ]; then
+  if [[ "$SCM_URL" =~ \.(tgz)$ ]]; then
+    echo "=====> Downloading tgz archive: $SCM_URL"
+    curl -k -s "$SCM_URL" | tar xvz -C "$SCM_URL"
+  elif [[ "$SCM_URL" =~ \.(zip)$ ]]; then
+    echo "=====> Downloading zip archive: $SCM_URL"
 	tempfile=$(mktemp -t tempXXXXX)
-	curl -k -o "$tempfile" "$url"
+	curl -k -o "$tempfile" "$SCM_URL"
 	unzip "$tempfile" -d "$dir"
 	rm "$tempfile"
   else
-    echo "=====> Downloading git repo: $url"
-    git clone $url $dir
+    echo "=====> Downloading git repo: $SCM_URL"
+    git clone $SCM_URL $dir
   fi
   echo "=====> Download finished"
 
