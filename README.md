@@ -8,9 +8,10 @@ You may want your application source code pulled in to your buildpack compatible
 
 ## Usage
 
-* use an app with a .buildpacks file in the root that has 1 line for each buildpack. the 1st line is likely the git-buildpack and subsequent lines should be other buildpacks that ready your app code to run
-* have a .gitbuildpack file in the root of the app so the git-buildpack bin/detect script returns 0
+* use an app with a .buildpacks file in the root that has 1 line for each buildpack. the 1st line is likely the scm-buildpack and subsequent lines should be other buildpacks that ready your app code to run
+* have a .scmbuildpack file in the root of the app so the scm-buildpack bin/detect script returns 0
 * set an SCM_URL environment variable with the URL to your git repository or your http URL that ends in .tgz or .zip
+* optionally set an SCM_BRANCH environment variable with the branch name you want to use
 
 ## Example
 
@@ -24,14 +25,14 @@ $ cd git-app
 Reference an app source code on Github. You'll need a file named .gitbuildpack (can be empty) and a .buildpacks file that uses the git-buildpack and the buildpack that your app should use after the git repo has been cloned.
 
 ```
-$ echo -e "https://github.com/jbayer/git-buildpack.git\nhttps://github.com/ryandotsmith/null-buildpack.git" > .buildpacks
-$ touch .gitbuildpack
+$ echo -e "https://github.com/jbayer/scm-buildpack.git\nhttps://github.com/ryandotsmith/null-buildpack.git" > .buildpacks
+$ touch .scmbuildpack
 $ ls -al
 total 8
 drwxr-xr-x   4 jamesbayer  wheel  136 Jan 26 08:10 .
 drwxrwxrwt  20 root        wheel  680 Jan 26 08:01 ..
 -rw-r--r--@  1 jamesbayer  wheel   94 Jan 26 07:50 .buildpacks
--rw-r--r--   1 jamesbayer  wheel    0 Jan 26 08:10 .gitbuildpack
+-rw-r--r--   1 jamesbayer  wheel    0 Jan 26 08:10 .scmbuildpack
 ```
 
 Now push the app, remembering to set the SCM_URL variable to the git repository you want to clone from. In this case we use --no-route because this is a simple worker app printing hello ever few seconds and doesn't bind to a port.
