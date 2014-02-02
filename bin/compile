@@ -17,10 +17,10 @@ function indent() {
 
 echo "=====> starting SCM buildpack compile"
 
-if [ "$SCM_URL" == "" ]; then
+if [ "${SCM_URL}X" == "X" ]; then
   echo "=====> SCM_URL is not set, exiting"
-  sleep 2;
-  exit 1;
+  sleep 2
+  exit 1
 fi
 
 SCM_URL=${SCM_URL}
@@ -34,37 +34,37 @@ DIR=$(mktemp -t buildpackXXXXX)
 rm -rf $DIR
 mkdir -p "$DIR"
 
-if [ "$SCM_URL" != "" ]; then
-  # if [[ "$SCM_URL" =~ \.(tgz|tar\.gz)$ ]]; then
-  if [[ "$SCM_URL" =~ \.(tgz)$ ]]; then
-    echo "=====> Downloading tgz archive: $SCM_URL"
-    curl -k -s "$SCM_URL" | tar xvz -C "$DIR" | indent
-  elif [[ "$SCM_URL" =~ \.(zip)$ ]]; then
-    echo "=====> Downloading zip archive: $SCM_URL"
-    TEMPFILE=$(mktemp -t tempXXXXX)
-    curl -k -o "$TEMPFILE" "$SCM_URL" | indent
-    unzip "$TEMPFILE" -d "$DIR" | indent
-    rm "$TEMPFILE"
-  elif [[ "$SCM_URL" =~ \.(git)$ ]]; then
-    if [[ -d $CACHE_DIR/.git ]]; then
-      echo "=====> Fetching existing repo"
-      cd $CACHE_DIR/.git
-      git fetch origin | indent
-      git checkout origin/$SCM_BRANCH | indent
-    else
-      echo "=====> Cloning repo for the first time"
-      git clone $SCM_URL $CACHE_DIR | indent
-    fi
+# if [[ "$SCM_URL" =~ \.(tgz|tar\.gz)$ ]]; then
+if [[ "$SCM_URL" =~ \.(tgz)$ ]]; then
+  echo "=====> Downloading tgz archive: $SCM_URL"
+  curl -k -s "$SCM_URL" | tar xvz -C "$DIR" | indent
+elif [[ "$SCM_URL" =~ \.(zip)$ ]]; then
+  echo "=====> Downloading zip archive: $SCM_URL"
+  TEMPFILE=$(mktemp -t tempXXXXX)
+  curl -k -o "$TEMPFILE" "$SCM_URL" | indent
+  unzip "$TEMPFILE" -d "$DIR" | indent
+  rm "$TEMPFILE"
+elif [[ "$SCM_URL" =~ \.(git)$ ]]; then
+  ls -al $CACHE_DIR/*
+  sleep 2
+  if [[ -d $CACHE_DIR/.git ]]; then
+    echo "=====> Fetching existing repo" | indent
+    cd $CACHE_DIR/.git
+    git fetch origin | indent
+    git checkout origin/$SCM_BRANCH | indent
   else
-    echo "\$SCM_URL $SCM_URL was not detected as a tgz, zip or git"
-    exit 1
+    echo "=====> Cloning repo for the first time"
+    git clone $SCM_URL $CACHE_DIR | indent
   fi
-
-  echo "=====> Download finished"
-
-  echo "=====> copying contents of $DIR to $1"
-  cd $DIR
-  cp -R $DIR/* $1
-  echo "=====> final contents of build dir"
-  ls -al $1
+else
+  echo "! \$SCM_URL $SCM_URL was not detected as a tgz, zip or git" | indent
+  exit 1
 fi
+
+echo "=====> Download finished"
+
+echo "=====> copying contents of $DIR to $1"
+cd $DIR
+cp -R $DIR/* $1
+echo "=====> final contents of build dir"
+ls -al $1
