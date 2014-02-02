@@ -23,51 +23,44 @@ if [ "${SCM_URL}X" == "X" ]; then
   exit 1
 fi
 
-SCM_URL=${SCM_URL}
 echo "=====> SCM_URL is $SCM_URL"
 
-SCM_BRANCH=${SCM_BRANCH:-master}
-echo "=====> SCM_BRANCH is $SCM_BRANCH"
-
 # temp location in case we need it for archive downloads
-DIR=$(mktemp -t buildpackXXXXX)
-rm -rf $DIR
-mkdir -p "$DIR"
+TEMPDIR=$(mktemp -t buildpackXXXXX)
+rm -rf $TEMPDIR
+mkdir -p $TEMPDIR
 
-APP_DIR=$CACHE_DIR/app
+SCM_DIR=$CACHE_DIR/app
 
 # if [[ "$SCM_URL" =~ \.(tgz|tar\.gz)$ ]]; then
 if [[ "$SCM_URL" =~ \.(tgz)$ ]]; then
   echo "=====> Downloading tgz archive: $SCM_URL"
-  curl -k -s "$SCM_URL" | tar xvz -C "$DIR" | indent
-  cp -R $DIR/* $BUILD_DIR/
+  curl -k -s $SCM_URL | tar xvz -C $TEMPDIR | indent
+  cp -R $TEMPDIR/* $BUILD_DIR/
 elif [[ "$SCM_URL" =~ \.(zip)$ ]]; then
   echo "=====> Downloading zip archive: $SCM_URL"
   TEMPFILE=$(mktemp -t tempXXXXX)
-  curl -k -o "$TEMPFILE" "$SCM_URL" | indent
-  unzip "$TEMPFILE" -d "$DIR" | indent
-  rm "$TEMPFILE"
-  cp -R $DIR/* $BUILD_DIR/
-elif [[ "$SCM_URL" =~ \.(git)$ ]]; then
-  git --version | indent
-  ls -al $CACHE_DIR/*
-  ls -al $CACHE_DIR/bundle/*
-  ls -al $CACHE_DIR/heroku/*
-  sleep 2
-  if [[ -d $APP_DIR/.git ]]; then
+  curl -k -o $TEMPFILE $SCM_URL | indent
+  unzip $TEMPFILE -d "$TEMPDIR | indent
+  rm $TEMPFILE
+  cp -R $TEMPDIR/* $BUILD_DIR/
+elif [[ $SCM_URL =~ \.(git)$ ]]; then
+  SCM_BRANCH=${SCM_BRANCH:-master}
+  echo "=====> SCM_BRANCH is $SCM_BRANCH"
+  if [[ -d $SCM_DIR/.git ]]; then
     echo "=====> Fetching existing repo" | indent
-    cd $APP_DIR
+    cd $SCM_DIR
     git fetch origin | indent
     git checkout origin/$SCM_BRANCH | indent
   else
     echo "=====> Cloning repo for the first time"
-    git clone $SCM_URL $APP_DIR | indent
+    git clone $SCM_URL $SCM_DIR | indent
   fi
   echo "CACHE_DIR -"
   ls -la $CACHE_DIR/
-  echo "APP_DIR -"
-  ls -la $APP_DIR/
-  cp -R $APP_DIR/* $BUILD_DIR/
+  echo "SCM_DIR -"
+  ls -la $SCM_DIR/
+  cp -R $SCM_DIR/* $BUILD_DIR/
 else
   echo "! \$SCM_URL $SCM_URL was not detected as a tgz, zip or git" | indent
   exit 1
