@@ -29,7 +29,7 @@ $ mkdir git-app
 $ cd git-app
 ```
 
-Reference an app source code on Github. You'll need a file named .gitbuildpack (can be empty) and a .buildpacks file that uses the git-buildpack and the buildpack that your app should use after the git repo has been cloned.
+Reference an app source code on Github. You'll need a file named `.scmbuildpack` (can be empty) and a `.buildpacks` file that references the scm-buildpack and other buildpack(s) that your app should use after the scm buildpack retrieves your app source files.
 
 ```
 $ echo -e "https://github.com/jbayer/scm-buildpack.git\nhttps://github.com/jbayer/hello-sinatra.git" > .buildpacks
@@ -152,10 +152,11 @@ urls: git-app.a1-app.cf-app.com
 #0   running   2014-02-03 11:52:55 AM   0.0%   68.5M of 512M   51.9M of 1G
 ```
 
-Notice that if you push the app again that this time it will fetch changes instead of cloning the repo again. In the future, `git clone URL --depth 1` will be considered as either an option or the default behavior. This needs exploration.
+Notice that if you push the app again that this time it will fetch changes instead of cloning the repo again. 
 
 ## Issues and Roadmap
 
 * support authentication in a way that doesn't put credentials in log output 
 * do not require SCM_URL env variable if the .gitbuildpack file has information
 * support other remote transports like FTP/SCP
+* investigate `git clone URL --depth 1` as either an option or the default behavior
