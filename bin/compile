@@ -30,12 +30,11 @@ mkdir -p $TEMPDIR
 
 SCM_DIR=$CACHE_DIR/scm
 
-# if [[ "$SCM_URL" =~ \.(tgz|tar\.gz)$ ]]; then
-if [[ "$SCM_URL" =~ \.(tgz)$ ]]; then
+if [[ "$SCM_URL" =~ \.(tgz|tar\.gz)$ ]]; then
   echo "=====> Downloading tgz archive: $SCM_URL"
   curl -k -s $SCM_URL | tar xvz -C $TEMPDIR  >/dev/null 2>&1
   cp -R $TEMPDIR/* $BUILD_DIR/
-elif [[ "$SCM_URL" =~ \.(zip)$ ]]; then
+elif [[ "$SCM_URL" =~ \.(zip|war)$ ]]; then
   echo "=====> Downloading zip archive: $SCM_URL"
   TEMPFILE=$(mktemp -t tempXXXXX)
   curl -k -o $TEMPFILE $SCM_URL >/dev/null 2>&1
