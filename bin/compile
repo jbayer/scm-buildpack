@@ -61,8 +61,5 @@ else
   exit 1
 fi
 
-echo "=====> Final cache dir listing"
-ls -al $CACHE_DIR | indent
-
 echo "=====> Final build dir listing"
 ls -al $BUILD_DIR | indent
