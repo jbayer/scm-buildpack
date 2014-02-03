@@ -1,17 +1,24 @@
 # SCM Buildpack
 
-a simple buildpack that pulls application code in from a remote git server or remote archives with a .zip or .tgz and extracts the files. it is intended to be used in conjunction with [heroku-buildpack-multi](https://github.com/ddollar/heroku-buildpack-multi#heroku-buildpack-multi) and other user-specified buildpacks. 
+a simple buildpack that pulls application code in from a remote location. currently supports:
+
+* remote git urls
+* remote http resources ending in `.zip`, `.tgz`, `.tar.gz`, and `.war`
+
+it is intended to be used in conjunction with [heroku-buildpack-multi](https://github.com/ddollar/heroku-buildpack-multi#heroku-buildpack-multi) and other user-specified buildpacks in a `.buildpacks` file. 
 
 ## Motivation
 
-You may want your application source code pulled in to your buildpack compatible PaaS from your git server of choice (such as Github) or a remote archive rather than be required to push your application code in or use a git location that is assigned to you (such as with Heroku) or have to push your application source code into the PaaS (Cloud Foundry).
+You may want your appl source code pulled in to your buildpack compatible PaaS from your git server of choice (such as Github) or a remote archive. Contrast this experience with being required use a git server that is assigned to you (such as with Heroku) or have to push your application source code into the PaaS (Cloud Foundry) over a potentially slow upload link.
 
 ## Usage
 
-* use an app with a .buildpacks file in the root that has 1 line for each buildpack. the 1st line is likely the scm-buildpack and subsequent lines should be other buildpacks that ready your app code to run
-* have a .scmbuildpack file in the root of the app so the scm-buildpack bin/detect script returns 0
-* set an SCM_URL environment variable with the URL to your git repository or your http URL that ends in .tgz or .zip
-* optionally set an SCM_BRANCH environment variable with the branch name you want to use
+* create an app directory with a `.buildpacks` file in the root path that has 1 buildpack url per line. the 1st line is likely the scm-buildpack and subsequent lines should be other buildpacks that ready your app code to run
+* have a `.scmbuildpack` file in the root of the app so the scm-buildpack `bin/detect` script returns a 0 exit code
+* set an `SCM_URL` environment variable with the URL to your git repository or your http URL that ends in `.tgz` or `.zip`
+* optionally set an `SCM_BRANCH` environment variable with the branch name you want to use
+
+The `SCM_URL` supports optional authentication when using `username:password@` format such as `https://username:password@blob.example.com/some-file.zip` or `https://username:somepassword@github.com/username/some-repo.git`
 
 ## Example
 
@@ -25,105 +32,130 @@ $ cd git-app
 Reference an app source code on Github. You'll need a file named .gitbuildpack (can be empty) and a .buildpacks file that uses the git-buildpack and the buildpack that your app should use after the git repo has been cloned.
 
 ```
-$ echo -e "https://github.com/jbayer/scm-buildpack.git\nhttps://github.com/ryandotsmith/null-buildpack.git" > .buildpacks
+$ echo -e "https://github.com/jbayer/scm-buildpack.git\nhttps://github.com/jbayer/hello-sinatra.git" > .buildpacks
 $ touch .scmbuildpack
+```
+
+Alternatively, use a `manifest.yml` file like this if you prefer to have a `cf push` experience without CLI options:
+
+```
+---
+applications:
+- name: git-app
+  memory: 512M
+  buildpack: https://github.com/ddollar/heroku-buildpack-multi.git
+  path: .
+  env:
+     SCM_URL: https://github.com/jbayer/hello-sinatra.git
+```
+
+Sample directory listing before the push.
+
+```
 $ ls -al
-total 8
-drwxr-xr-x   4 jamesbayer  wheel  136 Jan 26 08:10 .
-drwxrwxrwt  20 root        wheel  680 Jan 26 08:01 ..
--rw-r--r--@  1 jamesbayer  wheel   94 Jan 26 07:50 .buildpacks
--rw-r--r--   1 jamesbayer  wheel    0 Jan 26 08:10 .scmbuildpack
+total 16
+drwxr-xr-x   5 jamesbayer  wheel  170 Feb  3 11:41 .
+drwxrwxrwt  23 root        wheel  782 Feb  3 10:27 ..
+-rw-r--r--@  1 jamesbayer  wheel   94 Feb  3 11:40 .buildpacks
+-rw-r--r--   1 jamesbayer  wheel    0 Feb  3 11:41 .scmbuildpack
+-rw-r--r--@  1 jamesbayer  wheel  190 Feb  3 11:44 manifest.yml
 ```
 
-Now push the app, remembering to set the SCM_URL variable to the git repository you want to clone from. In this case we use --no-route because this is a simple worker app printing hello ever few seconds and doesn't bind to a port.
+Now push the app, remembering to set the `SCM_URL` env variable to the URL you want to use.
+
+Below is the syntax using multiple CLI commands with options:
 
 ```
-$ gcf push hello --no-route -m 64M -b https://github.com/ddollar/heroku-buildpack-multi.git --no-start
-$ gcf set-env hello SCM_URL https://github.com/jbayer/hello-world-app.git
-$ gcf start hello
-Starting app hello in org jbayer-normal-org / space development as jbayer+normal@gopivotal.com...
------> Downloaded app package (4.0K)
+$ cf push
+Using manifest file /private/tmp/git-app/manifest.yml
+
+Creating app git-app in org jbayer-org / space development as jbayer@gopivotal.com...
 OK
+
+Using route git-app.a1-app.cf-app.com
+Binding git-app.a1-app.cf-app.com to git-app...
+OK
+
+Uploading git-app...
+Uploading from: /private/tmp/git-app
+661, 3 files
+OK
+
+Starting app git-app in org jbayer-org / space development as jbayer@gopivotal.com...
+OK
+-----> Downloaded app package (4.0K)
+
+
 Initialized empty Git repository in /tmp/buildpacks/heroku-buildpack-multi/.git/
 =====> Downloading Buildpack: https://github.com/jbayer/scm-buildpack.git
-=====> Detected Framework: SCM buildpack detected
-=====> starting SCM buildpack compile
-=====> dir is /tmp/buildpackTMEPH
-=====> url is https://github.com/jbayer/hello-world-app.git
-=====> branch is is
-=====> Downloading git repo: https://github.com/jbayer/hello-world-app.git
-=====> final contents of build dir
-total 36
-drwxr--r-- 3 vcap vcap  4096 Jan 26 16:40 .
-drwxr-xr-x 5 vcap vcap  4096 Jan 26 16:40 ..
--rwxr--r-- 1 vcap vcap    94 Jan 26 16:39 .buildpacks
--rwxr--r-- 1 vcap vcap     0 Jan 26 16:39 .gitbuildpack
--rw-r--r-- 1 vcap vcap 11325 Jan 26 16:40 LICENSE
--rw-r--r-- 1 vcap vcap    17 Jan 26 16:40 Procfile
--rw-r--r-- 1 vcap vcap    76 Jan 26 16:40 README.md
-drwxr-xr-x 2 vcap vcap  4096 Jan 26 16:40 bin
-=====> Downloading Buildpack: https://github.com/ryandotsmith/null-buildpack.git
-=====> Detected Framework: Null
------> Nothing to do.
-       Using release configuration from last framework Null:
-       --- {}
------> Uploading droplet (8.0K)
+=====> Detected Framework: SCM
+=====> SCM_URL is https://github.com/jbayer/hello-sinatra.git
+=====> SCM_BRANCH is master
+=====> Cloning remote git repository
+       Initialized empty Git repository in /tmp/cache/scm/.git/
+=====> build dir listing
+       total 56
+       drwxr--r-- 3 vcap vcap  4096 Feb  3 19:52 .
+       drwxr-xr-x 5 vcap vcap  4096 Feb  3 19:52 ..
+       -rwxr--r-- 1 vcap vcap   101 Feb  3 19:52 .buildpacks
+       -rwxr--r-- 1 vcap vcap     0 Feb  3 19:52 .scmbuildpack
+       -rw-r--r-- 1 vcap vcap    43 Feb  3 19:52 Gemfile
+       -rw-r--r-- 1 vcap vcap   260 Feb  3 19:52 Gemfile.lock
+       -rw-r--r-- 1 vcap vcap 11325 Feb  3 19:52 LICENSE
+       -rw-r--r-- 1 vcap vcap    37 Feb  3 19:52 Procfile
+       -rw-r--r-- 1 vcap vcap   105 Feb  3 19:52 README.md
+       drwxr-xr-x 2 vcap vcap  4096 Feb  3 19:52 assets
+       -rw-r--r-- 1 vcap vcap    41 Feb  3 19:52 config.ru
+       -rw-r--r-- 1 vcap vcap   248 Feb  3 19:52 foo.rb
+       -rwxr--r-- 1 vcap vcap   106 Feb  3 19:52 manifest.yml
+=====> Downloading Buildpack: https://github.com/cloudfoundry/heroku-buildpack-ruby.git
+=====> Detected Framework: Ruby/Rack
+-----> Using Ruby version: ruby-1.9.3
+-----> Installing dependencies using Bundler version 1.3.2
+       Running: bundle install --without development:test --path vendor/bundle --binstubs vendor/bundle/bin --deployment
+       Fetching gem metadata from http://rubygems.org/..........
+       Fetching gem metadata from http://rubygems.org/..
+       Installing rack (1.5.1)
+       Installing rack-protection (1.3.2)
+       Installing tilt (1.3.3)
+       Installing sinatra (1.3.4)
+       Using bundler (1.3.2)
+       Your bundle is complete! It was installed into ./vendor/bundle
+       Cleaning up the bundler cache.
+-----> WARNINGS:
+       You have not declared a Ruby version in your Gemfile.
+       To set your Ruby version add this line to your Gemfile:"
+       ruby '1.9.3'"
+       # See https://devcenter.heroku.com/articles/ruby-versions for more information."
+       Using release configuration from last framework Ruby/Rack:
+       ---
+       addons: []
+       default_process_types:
+         rake: bundle exec rake
+         console: bundle exec irb
+         web: bundle exec rackup config.ru -p $PORT
+-----> Uploading droplet (23M)
 
 1 of 1 instances running
 
 App started
 
-Showing health and status for app hello in org jbayer-normal-org / space development as jbayer+normal@gopivotal.com...
+Showing health and status for app git-app in org jbayer-org / space development as jbayer@gopivotal.com...
 OK
 
 requested state: started
 instances: 1/1
-usage: 64M x 1 instances
-urls:
+usage: 512M x 1 instances
+urls: git-app.a1-app.cf-app.com
 
-     state     since                    cpu    memory        disk
-#0   running   2014-01-26 08:40:48 AM   0.0%   948K of 64M   84K of 1G
+     state     since                    cpu    memory          disk
+#0   running   2014-02-03 11:52:55 AM   0.0%   68.5M of 512M   51.9M of 1G
 ```
 
-Now you can check the logs to see if the app is working as expected.
-
-```
-$ gcf logs hello
-Connected, tailing logs for app hello in org jbayer-normal-org / space development as jbayer+normal@gopivotal.com...
-
-2014-01-26T08:39:30.69-0800 [API]     OUT Created app with guid 184ab665-1d05-4994-a85d-2e980e891ec3
-2014-01-26T08:40:25.01-0800 [API]     OUT Updated app with guid 184ab665-1d05-4994-a85d-2e980e891ec3 ({"environment_json"=>"PRIVATE DATA HIDDEN"})
-2014-01-26T08:40:42.37-0800 [STG]     OUT total 36
-2014-01-26T08:40:42.38-0800 [STG]     OUT drwxr--r-- 3 vcap vcap  4096 Jan 26 16:40 .
-2014-01-26T08:40:42.38-0800 [STG]     OUT drwxr-xr-x 5 vcap vcap  4096 Jan 26 16:40 ..
-2014-01-26T08:40:42.38-0800 [STG]     OUT -rwxr--r-- 1 vcap vcap    94 Jan 26 16:39 .buildpacks
-2014-01-26T08:40:42.38-0800 [STG]     OUT -rwxr--r-- 1 vcap vcap     0 Jan 26 16:39 .gitbuildpack
-2014-01-26T08:40:42.38-0800 [STG]     OUT -rw-r--r-- 1 vcap vcap 11325 Jan 26 16:40 LICENSE
-2014-01-26T08:40:42.38-0800 [STG]     OUT -rw-r--r-- 1 vcap vcap    17 Jan 26 16:40 Procfile
-2014-01-26T08:40:42.38-0800 [STG]     OUT -rw-r--r-- 1 vcap vcap    76 Jan 26 16:40 README.md
-2014-01-26T08:40:42.38-0800 [STG]     OUT drwxr-xr-x 2 vcap vcap  4096 Jan 26 16:40 bin
-2014-01-26T08:40:42.38-0800 [STG]     OUT =====> Downloading Buildpack: https://github.com/ryandotsmith/null-buildpack.git
-2014-01-26T08:40:42.38-0800 [STG]     OUT =====> Detected Framework: Null
-2014-01-26T08:40:42.38-0800 [STG]     OUT -----> Nothing to do.
-2014-01-26T08:40:42.38-0800 [STG]     OUT        Using release configuration from last framework Null:
-2014-01-26T08:40:42.38-0800 [STG]     OUT        --- {}
-2014-01-26T08:40:42.76-0800 [STG]     OUT -----> Uploading droplet (8.0K)
-2014-01-26T08:40:47.55-0800 [DEA]     OUT Registering app instance (index 0) with guid 184ab665-1d05-4994-a85d-2e980e891ec3
-2014-01-26T08:40:48.77-0800 [App/0]   OUT hello
-2014-01-26T08:40:48.77-0800 [App/0]   ERR
-2014-01-26T08:40:53.68-0800 [App/0]   OUT hello
-2014-01-26T08:40:58.69-0800 [App/0]   OUT hello
-2014-01-26T08:41:03.69-0800 [App/0]   OUT hello
-2014-01-26T08:41:08.69-0800 [App/0]   OUT hello
-2014-01-26T08:41:13.70-0800 [App/0]   OUT hello
-2014-01-26T08:41:18.70-0800 [App/0]   OUT hello
-
-```
+Notice that if you push the app again that this time it will fetch changes instead of cloning the repo again. In the future, `git clone URL --depth 1` will be considered as either an option or the default behavior. This needs exploration.
 
 ## Issues and Roadmap
 
-* save the repo in the app's buildpack cache dir and just fetch changes
 * support authentication in a way that doesn't put credentials in log output 
 * do not require SCM_URL env variable if the .gitbuildpack file has information
 * support other remote transports like FTP/SCP
-* more info logs
