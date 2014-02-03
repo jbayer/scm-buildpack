@@ -33,25 +33,25 @@ SCM_DIR=$CACHE_DIR/scm
 # if [[ "$SCM_URL" =~ \.(tgz|tar\.gz)$ ]]; then
 if [[ "$SCM_URL" =~ \.(tgz)$ ]]; then
   echo "=====> Downloading tgz archive: $SCM_URL"
-  curl -k -s $SCM_URL | tar xvz -C $TEMPDIR | indent
+  curl -k -s $SCM_URL | tar xvz -C $TEMPDIR  >/dev/null 2>&1
   cp -R $TEMPDIR/* $BUILD_DIR/
 elif [[ "$SCM_URL" =~ \.(zip)$ ]]; then
   echo "=====> Downloading zip archive: $SCM_URL"
   TEMPFILE=$(mktemp -t tempXXXXX)
-  curl -k -o $TEMPFILE $SCM_URL | indent
-  unzip $TEMPFILE -d $TEMPDIR | indent
+  curl -k -o $TEMPFILE $SCM_URL >/dev/null 2>&1
+  unzip $TEMPFILE -d $TEMPDIR  >/dev/null 2>&1
   rm $TEMPFILE
   cp -R $TEMPDIR/* $BUILD_DIR/
 elif [[ "$SCM_URL" =~ \.(git)$ ]]; then
   SCM_BRANCH=${SCM_BRANCH:-master}
   echo "=====> SCM_BRANCH is $SCM_BRANCH"
   if [[ -d $SCM_DIR/.git ]]; then
-    echo "=====> Fetching existing repo"
+    echo "=====> Fetching changes for existing repo"
     cd $SCM_DIR
     git fetch origin | indent
     git checkout origin/$SCM_BRANCH >/dev/null 2>&1
   else
-    echo "=====> Cloning repo for the first time"
+    echo "=====> Cloning remote git repository"
     git clone $SCM_URL $SCM_DIR | indent
   fi
   cp -R $SCM_DIR/* $BUILD_DIR/
