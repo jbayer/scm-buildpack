@@ -15,8 +15,6 @@ function indent() {
   esac
 }
 
-echo "=====> starting SCM buildpack compile"
-
 if [ "${SCM_URL}X" == "X" ]; then
   echo "=====> SCM_URL is not set, exiting"
   sleep 2
@@ -48,10 +46,10 @@ elif [[ "$SCM_URL" =~ \.(git)$ ]]; then
   SCM_BRANCH=${SCM_BRANCH:-master}
   echo "=====> SCM_BRANCH is $SCM_BRANCH"
   if [[ -d $SCM_DIR/.git ]]; then
-    echo "=====> Fetching existing repo" | indent
+    echo "=====> Fetching existing repo"
     cd $SCM_DIR
     git fetch origin | indent
-    git checkout origin/$SCM_BRANCH | indent
+    git checkout origin/$SCM_BRANCH >/dev/null 2>&1
   else
     echo "=====> Cloning repo for the first time"
     git clone $SCM_URL $SCM_DIR | indent
