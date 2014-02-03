@@ -61,5 +61,5 @@ else
   exit 1
 fi
 
-echo "=====> Final build dir listing"
+echo "=====> build dir listing"
 ls -al $BUILD_DIR | indent
