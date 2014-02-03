@@ -54,11 +54,8 @@ elif [[ "$SCM_URL" =~ \.(git)$ ]]; then
     echo "=====> Cloning repo for the first time"
     git clone $SCM_URL $SCM_DIR | indent
   fi
-  echo "CACHE_DIR -"
-  ls -la $CACHE_DIR/
-  echo "SCM_DIR -"
-  ls -la $SCM_DIR/
   cp -R $SCM_DIR/* $BUILD_DIR/
+  rm -rf $BUILD_DIR/.git
 else
   echo "! \$SCM_URL $SCM_URL was not detected as a tgz, zip or git" | indent
   exit 1
