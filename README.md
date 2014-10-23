@@ -32,7 +32,7 @@ $ cd git-app
 Reference an app source code on Github. You'll need a file named `.scmbuildpack` (can be empty) and a `.buildpacks` file that references the scm-buildpack and other buildpack(s) that your app should use after the scm buildpack retrieves your app source files.
 
 ```
-$ echo -e "https://github.com/jbayer/scm-buildpack.git\nhttps://github.com/jbayer/hello-sinatra.git" > .buildpacks
+$ echo -e "https://github.com/jbayer/scm-buildpack.git\nhttps://github.com/cloudfoundry/ruby-buildpack.git" > .buildpacks
 $ touch .scmbuildpack
 ```
 
