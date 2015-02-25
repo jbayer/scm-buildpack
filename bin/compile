@@ -44,15 +44,14 @@ elif [[ "$SCM_URL" =~ \.(zip|war)$ ]]; then
 elif [[ "$SCM_URL" =~ \.(git)$ ]]; then
   SCM_BRANCH=${SCM_BRANCH:-master}
   echo "=====> SCM_BRANCH is $SCM_BRANCH"
-  if [[ -d $SCM_DIR/.git ]]; then
-    echo "=====> Fetching changes for existing repo"
-    cd $SCM_DIR
-    git fetch origin | indent
-    git checkout origin/$SCM_BRANCH >/dev/null 2>&1
-  else
+ if [[ ! -d $SCM_DIR/.git ]]; then
     echo "=====> Cloning remote git repository"
     git clone $SCM_URL $SCM_DIR | indent
   fi
+  echo "=====> Fetching changes for existing repo"
+  cd $SCM_DIR
+  git fetch origin | indent
+  git checkout origin/$SCM_BRANCH >/dev/null 2>&1
   cp -R $SCM_DIR/* $BUILD_DIR/
   rm -rf $BUILD_DIR/.git
 else
