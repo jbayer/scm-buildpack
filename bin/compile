@@ -53,8 +53,11 @@ elif [[ "$SCM_URL" =~ \.(git)$ ]]; then
     echo "=====> Cloning remote git repository"
     git clone $SCM_URL $SCM_DIR | indent
   fi
+  cd $SCM_DIR
+  git submodule sync --recursive
+  git submodule update --init --recursive
   cp -R $SCM_DIR/* $BUILD_DIR/
-  rm -rf $BUILD_DIR/.git
+  find $BUILD_DIR -name ".git" -exec rm -rf {} \;
 else
   echo "! \$SCM_URL $SCM_URL was not detected as a tgz, zip or git" | indent
   exit 1
